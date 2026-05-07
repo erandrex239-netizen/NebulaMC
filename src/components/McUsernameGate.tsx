@@ -127,7 +127,7 @@ export const McUsernameGate = () => {
         <DialogHeader>
           <div className="mx-auto mb-2 relative">
             <div className="absolute inset-0 bg-gradient-aurora opacity-40 blur-2xl rounded-full" aria-hidden />
-            <img src={logo} alt="NebulaMC" className="relative w-16 h-16 rounded-xl ring-1 ring-primary/40 shadow-glow-primary" />
+            <img src={logo} alt="NebulaMC" className="relative w-16 h-16 rounded-full object-cover ring-1 ring-primary/40 shadow-glow-primary" />
           </div>
           <DialogTitle className="text-center font-display text-2xl text-gradient">Imposta il tuo username Minecraft</DialogTitle>
           <DialogDescription className="text-center">

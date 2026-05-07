@@ -38,7 +38,7 @@ export const Navbar = () => {
       <div className="absolute inset-0 bg-background/60 backdrop-blur-xl border-b border-border/40" />
       <nav className="container relative flex h-16 items-center justify-between gap-4">
         <Link to="/" className="flex items-center gap-2 group">
-          <img src={logo} alt="NebulaMC logo" className="h-10 w-10 rounded-lg object-cover ring-1 ring-primary/30 group-hover:ring-primary/70 transition" />
+          <img src={logo} alt="NebulaMC logo" className="h-10 w-10 rounded-full object-cover ring-1 ring-primary/30 group-hover:ring-primary/70 transition" />
           <span className="font-display font-bold text-lg tracking-wider text-nebula hidden sm:block">NebulaMC</span>
         </Link>
 

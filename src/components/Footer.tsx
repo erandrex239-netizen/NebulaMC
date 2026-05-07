@@ -8,7 +8,7 @@ export const Footer = () => (
     <div className="container relative py-12 grid gap-8 md:grid-cols-4">
       <div className="md:col-span-2">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="NebulaMC" className="h-12 w-12 rounded-lg ring-1 ring-primary/30" />
+          <img src={logo} alt="NebulaMC" className="h-12 w-12 rounded-full object-cover ring-1 ring-primary/30" />
           <div>
             <div className="font-display font-bold text-xl text-nebula">NebulaMC</div>
             <div className="text-xs text-muted-foreground tracking-widest uppercase">Beyond the Stars</div>

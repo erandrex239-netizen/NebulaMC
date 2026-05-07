@@ -361,8 +361,15 @@ const RulesPanel = ({ isOwner }: { isOwner: boolean }) => {
 
   const save = async () => {
     if (!editing || !ownerOnly(isOwner)) return;
-    const { id, ...data } = editing;
-    const res = id ? await supabase.from("server_rules").update(data).eq("id", id) : await supabase.from("server_rules").insert(data);
+    const data = {
+      title: editing.title,
+      description: editing.description,
+      category: editing.category,
+      display_order: editing.display_order,
+    };
+    const res = editing.id
+      ? await supabase.from("server_rules").update(data).eq("id", editing.id)
+      : await supabase.from("server_rules").insert(data);
     if (res.error) return toast.error(res.error.message);
     toast.success("Salvato"); setEditing(null); fetchItems();
   };
