@@ -160,7 +160,27 @@ const NewsPanel = ({ userId, isOwner }: { userId: string; isOwner: boolean }) =>
             <div><Label>Titolo</Label><Input value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value, slug: editing.id ? editing.slug : slugify(e.target.value) })} /></div>
             <div><Label>Slug</Label><Input value={editing.slug} onChange={(e) => setEditing({ ...editing, slug: e.target.value })} /></div>
             <div><Label>Categoria</Label><Input value={editing.category} onChange={(e) => setEditing({ ...editing, category: e.target.value })} /></div>
-            <div><Label>URL immagine</Label><Input value={editing.image_url} onChange={(e) => setEditing({ ...editing, image_url: e.target.value })} /></div>
+            <div>
+              <Label>Immagine (URL oppure file)</Label>
+              <Input value={editing.image_url} onChange={(e) => setEditing({ ...editing, image_url: e.target.value })} placeholder="https://..." />
+              <Input
+                type="file"
+                accept="image/*"
+                className="mt-2"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const ext = file.name.split(".").pop() || "png";
+                  const path = `${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
+                  const { error } = await supabase.storage.from("news-images").upload(path, file, { upsert: false, contentType: file.type });
+                  if (error) { toast.error(error.message); return; }
+                  const { data } = supabase.storage.from("news-images").getPublicUrl(path);
+                  setEditing((cur) => cur ? { ...cur, image_url: data.publicUrl } : cur);
+                  toast.success("Immagine caricata");
+                }}
+              />
+              {editing.image_url && <img src={editing.image_url} alt="" className="mt-2 w-32 h-20 object-cover rounded-md border border-border/40" />}
+            </div>
           </div>
           <div><Label>Estratto</Label><Textarea value={editing.excerpt} onChange={(e) => setEditing({ ...editing, excerpt: e.target.value })} rows={2} /></div>
           <div><Label>Contenuto</Label><Textarea value={editing.content} onChange={(e) => setEditing({ ...editing, content: e.target.value })} rows={8} /></div>

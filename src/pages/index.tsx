@@ -77,7 +77,7 @@ const Index = () => {
           <div className="relative animate-scale-in">
             <div className="absolute inset-0 bg-gradient-aurora rounded-full blur-3xl opacity-40 animate-pulse-glow" aria-hidden />
             <div className="relative animate-float">
-              <img src={logo} alt="NebulaMC astronaut floating in nebula" className="w-full max-w-lg mx-auto drop-shadow-[0_0_60px_hsl(265,90%,65%,0.6)]" />
+              <img src={logo} alt="NebulaMC astronaut floating in nebula" className="w-full max-w-lg mx-auto rounded-full object-cover ring-2 ring-primary/30 drop-shadow-[0_0_60px_hsl(265,90%,65%,0.6)]" />
             </div>
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-[110%] h-[110%] rounded-full border border-primary/20 animate-orbit" style={{ borderStyle: "dashed" }} />
