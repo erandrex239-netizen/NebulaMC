@@ -278,17 +278,31 @@ const UsersPanel = ({ isOwner }: { isOwner: boolean }) => {
   const [items, setItems] = useState<any[]>([]);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState({ minecraft_username: "", password: "", role: "moderator" });
+  const [search, setSearch] = useState("");
 
   const fetchItems = async () => {
     if (!isOwner) { setItems([]); return; }
-    const { data: creds } = await supabase.from("mc_credentials").select("*").order("created_at", { ascending: false });
-    const { data: roles } = await supabase.from("user_roles").select("*");
-    const merged = (creds ?? []).map((c: any) => ({
-      ...c,
-      role: roles?.find((r: any) => r.user_id === c.user_id)?.role ?? "user",
-    }));
+    const [{ data: profiles }, { data: creds }, { data: roles }] = await Promise.all([
+      supabase.from("profiles").select("*").order("created_at", { ascending: false }),
+      supabase.from("mc_credentials").select("*"),
+      supabase.from("user_roles").select("*"),
+    ]);
+    const merged = (profiles ?? []).map((p: any) => {
+      const cred = creds?.find((c: any) => c.user_id === p.id);
+      return {
+        id: p.id,
+        user_id: p.id,
+        minecraft_username: p.minecraft_username ?? cred?.minecraft_username ?? "—",
+        email: p.email ?? cred?.email ?? "",
+        display_name: p.display_name ?? "",
+        created_at: p.created_at,
+        role: roles?.find((r: any) => r.user_id === p.id)?.role ?? "user",
+        is_staff_account: !!cred,
+      };
+    });
     setItems(merged);
   };
+
   useEffect(() => { fetchItems(); }, [isOwner]);
 
   const create = async () => {
@@ -314,6 +328,18 @@ const UsersPanel = ({ isOwner }: { isOwner: boolean }) => {
     if (error || data?.error) return toast.error(data?.error ?? "Errore");
     toast.success("Rimosso");
     fetchItems();
+  };
+
+  const changePassword = async (item: any) => {
+    if (!ownerOnly(isOwner)) return;
+    const pwd = prompt(`Nuova password per ${item.minecraft_username} (min 6 caratteri):`);
+    if (!pwd) return;
+    if (pwd.length < 6) return toast.error("Password troppo corta (min 6)");
+    const { data, error } = await supabase.functions.invoke("change-user-password", {
+      body: { user_id: item.user_id, password: pwd },
+    });
+    if (error || data?.error) return toast.error(data?.error ?? "Errore");
+    toast.success("Password aggiornata");
   };
 
   const changeRole = async (userId: string, newRole: string) => {
@@ -348,12 +374,35 @@ const UsersPanel = ({ isOwner }: { isOwner: boolean }) => {
         </div>
       </div>
 
+      <div className="glass rounded-xl p-3 mb-3">
+        <Input
+          placeholder="🔎 Cerca per username, email o nome..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="bg-transparent"
+        />
+        <p className="text-xs text-muted-foreground mt-2">{items.length} utenti registrati totali</p>
+      </div>
+
       <div className="space-y-2">
-        {items.map((it) => (
+        {items
+          .filter((it) => {
+            const q = search.trim().toLowerCase();
+            if (!q) return true;
+            return (
+              it.minecraft_username?.toLowerCase().includes(q) ||
+              it.email?.toLowerCase().includes(q) ||
+              it.display_name?.toLowerCase().includes(q)
+            );
+          })
+          .map((it) => (
           <div key={it.id} className="glass rounded-xl p-4 flex items-center gap-3">
             <img src={`https://mc-heads.net/avatar/${encodeURIComponent(it.minecraft_username)}/48`} alt="" className="w-12 h-12 rounded-md ring-1 ring-primary/30" />
             <div className="flex-1 min-w-0">
-              <div className="font-mono font-bold">{it.minecraft_username}</div>
+              <div className="font-mono font-bold flex items-center gap-2">
+                {it.minecraft_username}
+                {!it.is_staff_account && <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/40 text-muted-foreground uppercase">player</span>}
+              </div>
               <div className="text-xs text-muted-foreground truncate">{it.email}</div>
             </div>
             <select className="h-9 rounded-md border border-input bg-input/40 px-2 text-xs" value={it.role} onChange={(e) => changeRole(it.user_id, e.target.value)}>
@@ -362,10 +411,11 @@ const UsersPanel = ({ isOwner }: { isOwner: boolean }) => {
               <option value="moderator">moderator</option>
               <option value="user">user</option>
             </select>
-            <Button variant="ghost" size="sm" onClick={() => removeStaff(it)}><Trash2 /></Button>
+            <Button variant="ghost" size="sm" onClick={() => changePassword(it)} title="Cambia password"><Lock /></Button>
+            {it.is_staff_account && <Button variant="ghost" size="sm" onClick={() => removeStaff(it)} title="Elimina account"><Trash2 /></Button>}
           </div>
         ))}
-        {items.length === 0 && <p className="text-center text-muted-foreground py-12">Nessun account staff.</p>}
+        {items.length === 0 && <p className="text-center text-muted-foreground py-12">Nessun utente registrato.</p>}
       </div>
     </div>
   );
